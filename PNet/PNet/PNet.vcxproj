@@ -120,9 +120,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="IncludeMe.h" />
+    <ClInclude Include="Network.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Network.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
