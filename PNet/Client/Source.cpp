@@ -1,5 +1,5 @@
 //Client Code [Tutorial 1]
-//Author: JPres 2019-04-04
+//Author: Jacob Preston 2019-04-04
 
 #include <PNet\IncludeMe.h>
 
