@@ -120,6 +120,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="IncludeMe.h" />
+    <ClInclude Include="IPEndpoint.h" />
     <ClInclude Include="IPVersion.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="PResult.h" />
@@ -128,6 +129,7 @@
     <ClInclude Include="SocketOption.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="IPEndpoint.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Socket.cpp" />
   </ItemGroup>

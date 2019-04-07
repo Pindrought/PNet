@@ -3,6 +3,7 @@
 #include "PResult.h"
 #include "IPVersion.h"
 #include "SocketOption.h"
+#include "IPEndpoint.h"
 
 namespace PNet
 {
