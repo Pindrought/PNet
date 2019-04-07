@@ -52,6 +52,19 @@ namespace PNet
 		return PResult::P_Success;
 	}
 
+	PResult Socket::Bind(IPEndpoint endpoint)
+	{
+		sockaddr_in addr = endpoint.GetSockaddrIPv4();
+		int result = bind(handle, (sockaddr*)(&addr), sizeof(sockaddr_in));
+		if (result != 0) //if an error occurred
+		{
+			int error = WSAGetLastError();
+			return PResult::P_NotYetImplemented;
+		}
+
+		return PResult::P_Success;
+	}
+
 	SocketHandle Socket::GetHandle()
 	{
 		return handle;
