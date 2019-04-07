@@ -1,4 +1,4 @@
-//Server Code [Tutorial 5]
+//Server Code [Tutorial 6]
 //Author: Jacob Preston 2019-04-07
 
 #include <PNet\IncludeMe.h>
@@ -12,7 +12,7 @@ int main()
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
 
-		IPEndpoint test("192.168.0.2", 8080);
+		IPEndpoint test("www.google.com", 8080);
 		if (test.GetIPVersion() == IPVersion::IPv4)
 		{
 			std::cout << "Hostname: " << test.GetHostname() << std::endl;

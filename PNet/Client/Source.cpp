@@ -1,4 +1,4 @@
-//Client Code [Tutorial 5]
+//Client Code [Tutorial 6]
 //Author: Jacob Preston 2019-04-07
 
 #include <PNet\IncludeMe.h>

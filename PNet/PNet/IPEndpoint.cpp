@@ -25,6 +25,30 @@ namespace PNet
 			}
 		}
 
+		//Attempt to resolve hostname to ipv4 address
+		addrinfo hints = {}; //hints will filter the results we get back for getaddrinfo
+		hints.ai_family = AF_INET; //ipv4 addresses only
+		addrinfo * hostinfo = nullptr;
+		result = getaddrinfo(ip, NULL, &hints, &hostinfo);
+		if (result == 0)
+		{
+			sockaddr_in * host_addr = reinterpret_cast<sockaddr_in*>(hostinfo->ai_addr);
+
+			ip_string.resize(16);
+			inet_ntop(AF_INET, &host_addr->sin_addr, &ip_string[0], 16);
+
+			hostname = ip;
+
+			ULONG ip_long = host_addr->sin_addr.S_un.S_addr; //get ip address as unsigned long
+			ip_bytes.resize(sizeof(ULONG)); 
+			memcpy(&ip_bytes[0], &ip_long, sizeof(ULONG)); //copy bytes into our array of bytes representing ip address
+
+			ipversion = IPVersion::IPv4;
+
+			freeaddrinfo(hostinfo); //memory cleanup from getaddrinfo call
+			return;
+		}
+
 	}
 
 	IPVersion IPEndpoint::GetIPVersion()
