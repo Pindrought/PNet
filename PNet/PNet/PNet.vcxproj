@@ -125,6 +125,7 @@
     <ClInclude Include="PResult.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SocketHandle.h" />
+    <ClInclude Include="SocketOption.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Network.cpp" />
