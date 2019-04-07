@@ -82,6 +82,30 @@ namespace PNet
 		return PResult::P_Success;
 	}
 
+	PResult Socket::Accept(Socket & outSocket)
+	{
+		SocketHandle acceptedConnectionHandle = accept(handle, nullptr, nullptr);
+		if (acceptedConnectionHandle == INVALID_SOCKET)
+		{
+			int error = WSAGetLastError();
+			return PResult::P_NotYetImplemented;
+		}
+		outSocket = Socket(IPVersion::IPv4, acceptedConnectionHandle);
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Connect(IPEndpoint endpoint)
+	{
+		sockaddr_in addr = endpoint.GetSockaddrIPv4();
+		int result = connect(handle, (sockaddr*)(&addr), sizeof(sockaddr_in));
+		if (result != 0) //if an error occurred
+		{
+			int error = WSAGetLastError();
+			return PResult::P_NotYetImplemented;
+		}
+		return PResult::P_Success;
+	}
+
 	SocketHandle Socket::GetHandle()
 	{
 		return handle;

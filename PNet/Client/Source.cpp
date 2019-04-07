@@ -1,4 +1,4 @@
-//Client Code [Tutorial 8]
+//Client Code [Tutorial 9]
 //Author: Jacob Preston 2019-04-07
 
 #include <PNet\IncludeMe.h>
@@ -15,6 +15,14 @@ int main()
 		if (socket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
+			if (socket.Connect(IPEndpoint("127.0.0.1", 4790)) == PResult::P_Success)
+			{
+				std::cout << "Successfully connected to server!" << std::endl;
+			}
+			else
+			{
+				std::cerr << "Failed to connect to server." << std::endl;
+			}
 			socket.Close();
 		}
 		else
@@ -23,5 +31,6 @@ int main()
 		}
 	}
 	Network::Shutdown();
+	system("pause");
 	return 0;
 }

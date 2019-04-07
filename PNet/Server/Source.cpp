@@ -1,4 +1,4 @@
-//Server Code [Tutorial 8]
+//Server Code [Tutorial 9]
 //Author: Jacob Preston 2019-04-07
 
 #include <PNet\IncludeMe.h>
@@ -19,6 +19,16 @@ int main()
 			if (socket.Listen(IPEndpoint("0.0.0.0", 4790)) == PResult::P_Success)
 			{
 				std::cout << "Socket successfully listening on port 4790." << std::endl;
+				Socket newConnection;
+				if (socket.Accept(newConnection) == PResult::P_Success)
+				{
+					std::cout << "New connection accepted." << std::endl;
+					newConnection.Close();
+				}
+				else
+				{
+					std::cerr << "Failed to accept new connection." << std::endl;
+				}
 			}
 			else
 			{
