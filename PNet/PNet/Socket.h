@@ -18,6 +18,8 @@ namespace PNet
 		PResult Listen(IPEndpoint endpoint, int backlog = 5);
 		PResult Accept(Socket & outSocket);
 		PResult Connect(IPEndpoint endpoint);
+		PResult Send(void * data, int numberOfBytes, int & bytesSent);
+		PResult Recv(void * destination, int numberOfBytes, int & bytesReceived);
 		SocketHandle GetHandle();
 		IPVersion GetIPVersion();
 	private:
