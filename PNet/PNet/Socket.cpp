@@ -1,5 +1,6 @@
 #include "Socket.h"
 #include <assert.h>
+#include <iostream>
 
 namespace PNet
 {
@@ -84,12 +85,17 @@ namespace PNet
 
 	PResult Socket::Accept(Socket & outSocket)
 	{
-		SocketHandle acceptedConnectionHandle = accept(handle, nullptr, nullptr);
+		sockaddr_in addr = {};
+		int len = sizeof(sockaddr_in);
+		SocketHandle acceptedConnectionHandle = accept(handle, (sockaddr*)(&addr), &len);
 		if (acceptedConnectionHandle == INVALID_SOCKET)
 		{
 			int error = WSAGetLastError();
 			return PResult::P_NotYetImplemented;
 		}
+		IPEndpoint newConnectionEndpoint((sockaddr*)&addr);
+		std::cout << "New connection accepted!" << std::endl;
+		newConnectionEndpoint.Print();
 		outSocket = Socket(IPVersion::IPv4, acceptedConnectionHandle);
 		return PResult::P_Success;
 	}
