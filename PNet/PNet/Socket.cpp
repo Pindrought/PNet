@@ -143,6 +143,46 @@ namespace PNet
 		return PResult::P_Success;
 	}
 
+	PResult Socket::SendAll(void * data, int numberOfBytes)
+	{
+		int totalBytesSent = 0;
+
+		while (totalBytesSent < numberOfBytes)
+		{
+			int bytesRemaining = numberOfBytes - totalBytesSent;
+			int bytesSent = 0;
+			char * bufferOffset = (char*)data + totalBytesSent;
+			PResult result = Send(bufferOffset, bytesRemaining, bytesSent);
+			if (result != PResult::P_Success)
+			{
+				return PResult::P_NotYetImplemented;
+			}
+			totalBytesSent += bytesSent;
+		}
+
+		return PResult::P_Success;
+	}
+
+	PResult Socket::RecvAll(void * destination, int numberOfBytes)
+	{
+		int totalBytesReceived = 0;
+
+		while (totalBytesReceived < numberOfBytes)
+		{
+			int bytesRemaining = numberOfBytes - totalBytesReceived;
+			int bytesReceived = 0;
+			char * bufferOffset = (char*)destination + totalBytesReceived;
+			PResult result = Recv(bufferOffset, bytesRemaining, bytesReceived);
+			if (result != PResult::P_Success)
+			{
+				return PResult::P_NotYetImplemented;
+			}
+			totalBytesReceived += bytesReceived;
+		}
+
+		return PResult::P_Success;
+	}
+
 	SocketHandle Socket::GetHandle()
 	{
 		return handle;

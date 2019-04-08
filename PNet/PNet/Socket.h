@@ -20,6 +20,8 @@ namespace PNet
 		PResult Connect(IPEndpoint endpoint);
 		PResult Send(void * data, int numberOfBytes, int & bytesSent);
 		PResult Recv(void * destination, int numberOfBytes, int & bytesReceived);
+		PResult SendAll(void * data, int numberOfBytes);
+		PResult RecvAll(void * destination, int numberOfBytes);
 		SocketHandle GetHandle();
 		IPVersion GetIPVersion();
 	private:
