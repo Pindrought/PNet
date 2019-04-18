@@ -124,6 +124,7 @@
     <ClInclude Include="IPEndpoint.h" />
     <ClInclude Include="IPVersion.h" />
     <ClInclude Include="Network.h" />
+    <ClInclude Include="Packet.h" />
     <ClInclude Include="PResult.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SocketHandle.h" />
@@ -132,6 +133,7 @@
   <ItemGroup>
     <ClCompile Include="IPEndpoint.cpp" />
     <ClCompile Include="Network.cpp" />
+    <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Socket.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
