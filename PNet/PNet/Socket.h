@@ -5,6 +5,7 @@
 #include "SocketOption.h"
 #include "IPEndpoint.h"
 #include "Constants.h"
+#include "Packet.h"
 
 namespace PNet
 {
@@ -23,6 +24,8 @@ namespace PNet
 		PResult Recv(void * destination, int numberOfBytes, int & bytesReceived);
 		PResult SendAll(const void * data, int numberOfBytes);
 		PResult RecvAll(void * destination, int numberOfBytes);
+		PResult Send(Packet & packet);
+		PResult Recv(Packet & packet);
 		SocketHandle GetHandle();
 		IPVersion GetIPVersion();
 	private:

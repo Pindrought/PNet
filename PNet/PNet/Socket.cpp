@@ -128,7 +128,7 @@ namespace PNet
 	PResult Socket::Recv(void * destination, int numberOfBytes, int & bytesReceived)
 	{
 		bytesReceived = recv(handle, (char*)destination, numberOfBytes, NULL);
-		
+
 		if (bytesReceived == 0) //If connection was gracefully closed
 		{
 			return PResult::P_GenericError;
@@ -183,6 +183,39 @@ namespace PNet
 
 		return PResult::P_Success;
 	}
+
+	PResult Socket::Send(Packet & packet)
+	{
+		uint32_t encodedPacketSize = htonl(packet.buffer.size());
+		PResult result = SendAll(&encodedPacketSize, sizeof(uint32_t));
+		if (result != PResult::P_Success)
+			return PResult::P_GenericError;
+
+		result = SendAll(packet.buffer.data(), packet.buffer.size());
+		if (result != PResult::P_Success)
+			return PResult::P_GenericError;
+
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Recv(Packet & packet)
+	{
+		packet.Clear();
+
+		uint32_t encodedSize = 0;
+		PResult result = RecvAll(&encodedSize, sizeof(uint32_t));
+		if (result != PResult::P_Success)
+			return PResult::P_GenericError;
+
+		uint32_t bufferSize = ntohl(encodedSize);
+		packet.buffer.resize(bufferSize);
+		result = RecvAll(&packet.buffer[0], bufferSize);
+		if (result != PResult::P_Success)
+			return PResult::P_GenericError;
+
+		return PResult::P_Success;
+	}
+
 
 	SocketHandle Socket::GetHandle()
 	{

@@ -1,5 +1,5 @@
-//Server Code [Tutorial 13]
-//Author: Jacob Preston 2019-04-12
+//Server Code [Tutorial 14]
+//Author: Jacob Preston 2019-04-18
 
 #include <PNet\IncludeMe.h>
 #include <iostream>
@@ -24,25 +24,17 @@ int main()
 				{
 					std::cout << "New connection accepted." << std::endl;
 
-					std::string buffer = "";
+					std::string string1, string2;
+					Packet packet;
 					while (true)
 					{
-						uint32_t bufferSize = 0;
-						int result = newConnection.RecvAll(&bufferSize, sizeof(uint32_t));
+						PResult result = newConnection.Recv(packet);
 						if (result != PResult::P_Success)
 							break;
 
-						bufferSize = ntohl(bufferSize); //convert buffer size from network byte order to host byte order due to integer endiannesss
-
-						if (bufferSize > PNet::g_MaxPacketSize) //Sanity check - is buffer size larger than max packet size? if so break loop/cancel connection
-							break;
-
-						buffer.resize(bufferSize);
-						result = newConnection.RecvAll(&buffer[0], bufferSize);
-						if (result != PResult::P_Success)
-							break;
-
-						std::cout << "[" << bufferSize << "] - " << buffer << std::endl;
+						packet >> string1 >> string2;
+						std::cout << string1 << std::endl;
+						std::cout << string2 << std::endl;
 					}
 
 					newConnection.Close();

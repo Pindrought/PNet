@@ -1,5 +1,5 @@
-//Client Code [Tutorial 13]
-//Author: Jacob Preston 2019-04-12
+//Client Code [Tutorial 14]
+//Author: Jacob Preston 2019-04-18
 
 #include <PNet\IncludeMe.h>
 #include <iostream>
@@ -19,17 +19,13 @@ int main()
 			{
 				std::cout << "Successfully connected to server!" << std::endl;
 				
-				std::string buffer = "Hello world from client!";
 
+				Packet packet;
+				packet << std::string("This is the first string!");
+				packet << std::string("This is the second string!");
 				while (true)
 				{
-					uint32_t bufferSize = buffer.size();
-					bufferSize = htonl(bufferSize); //convert from host to network byte order - all integers sent over a stream should be in network byte order
-					int result = socket.SendAll(&bufferSize, sizeof(uint32_t));
-					if (result != PResult::P_Success)
-						break;
-
-					result = socket.SendAll(buffer.data(), buffer.size());
+					PResult result = socket.Send(packet);
 					if (result != PResult::P_Success)
 						break;
 
