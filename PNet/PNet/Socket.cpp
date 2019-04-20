@@ -208,6 +208,10 @@ namespace PNet
 			return PResult::P_GenericError;
 
 		uint32_t bufferSize = ntohl(encodedSize);
+
+		if (bufferSize > PNet::g_MaxPacketSize)
+			return PResult::P_GenericError;
+
 		packet.buffer.resize(bufferSize);
 		result = RecvAll(&packet.buffer[0], bufferSize);
 		if (result != PResult::P_Success)
