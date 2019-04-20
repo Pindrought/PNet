@@ -24,7 +24,7 @@ int main()
 				{
 					std::cout << "New connection accepted." << std::endl;
 
-					std::string string1, string2;
+					std::string string1, string2, string3;
 					Packet packet;
 					while (true)
 					{
@@ -33,8 +33,10 @@ int main()
 							break;
 
 						packet >> string1 >> string2;
+						packet >> string3;
 						std::cout << string1 << std::endl;
 						std::cout << string2 << std::endl;
+
 					}
 
 					newConnection.Close();
