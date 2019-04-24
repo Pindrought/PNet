@@ -20,12 +20,26 @@ int main()
 				std::cout << "Successfully connected to server!" << std::endl;
 				
 
-				Packet packet;
-				packet << std::string("This is the first string!");
-				packet << std::string("This is the second string!");
+				Packet packet1(PacketType::ChatMessage);
+				packet1 << std::string("This is the first string!");
+
+				Packet packet2(PacketType::IntegerArray);
+				uint32_t arraySize = 4;
+				uint32_t intArray[4] = { 5, 7, 12, 3 };
+				packet2 << arraySize;
+				packet2 << intArray[0] << intArray[1] << intArray[2] << intArray[3];
 				while (true)
 				{
-					PResult result = socket.Send(packet);
+
+					PResult result;
+					if (rand() % 2 == 0)
+					{
+						result = socket.Send(packet1);
+					}
+					else
+					{
+						result = socket.Send(packet2);
+					}
 					if (result != PResult::P_Success)
 						break;
 

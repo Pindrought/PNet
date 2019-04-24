@@ -126,6 +126,7 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketException.h" />
+    <ClInclude Include="PacketType.h" />
     <ClInclude Include="PResult.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SocketHandle.h" />

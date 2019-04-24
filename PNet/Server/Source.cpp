@@ -6,6 +6,37 @@
 
 using namespace PNet;
 
+bool ProcessPacket(Packet & packet)
+{
+	switch (packet.GetPacketType())
+	{
+	case PacketType::ChatMessage:
+	{
+		std::string msg;
+		packet >> msg;
+		std::cout << "Chat message: " << msg << std::endl;
+		break;
+	}
+	case PacketType::IntegerArray:
+	{
+		uint32_t arraySize = 0;
+		packet >> arraySize;
+		std::cout << "Integer Array Size: " << arraySize << std::endl;
+		for (uint32_t i = 0; i < arraySize; i++)
+		{
+			uint32_t elementValue = 0;
+			packet >> elementValue;
+			std::cout << "Integer[" << i << "] " << elementValue << std::endl;
+		}
+		break;
+	}
+	default:
+		std::cout << "Unhandled packet type: " << packet.GetPacketType() << std::endl;
+		return false;
+	}
+	return true;
+}
+
 int main()
 {
 	if (Network::Initialize())
@@ -32,18 +63,8 @@ int main()
 						if (result != PResult::P_Success)
 							break;
 
-						try
-						{
-							packet >> string1 >> string2 >> string3;
-						}
-						catch (PacketException & exception)
-						{
-							std::cout << exception.what() << std::endl;
+						if (!ProcessPacket(packet))
 							break;
-						}
-						std::cout << string1 << std::endl;
-						std::cout << string2 << std::endl;
-
 					}
 
 					newConnection.Close();
