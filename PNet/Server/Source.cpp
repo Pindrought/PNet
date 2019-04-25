@@ -43,7 +43,7 @@ int main()
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
 
-		Socket socket;
+		Socket socket; 
 		if (socket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
