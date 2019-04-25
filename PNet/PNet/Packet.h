@@ -3,12 +3,17 @@
 #include <vector>
 #include <winsock.h>
 #include "PacketException.h"
+#include "PacketType.h"
 
 namespace PNet
 {
 	class Packet
 	{
 	public:
+		Packet(PacketType packetType = PacketType::PT_Invalid);
+		PacketType GetPacketType();
+		void AssignPacketType(PacketType packetType);
+
 		void Clear();
 		void Append(const void * data, uint32_t size);
 

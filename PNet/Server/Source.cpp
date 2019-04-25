@@ -1,10 +1,41 @@
-//Server Code [Tutorial 15]
-//Author: Jacob Preston 2019-04-19
+//Server Code [Tutorial 16]
+//Author: Jacob Preston 2019-04-25
 
 #include <PNet\IncludeMe.h>
 #include <iostream>
 
 using namespace PNet;
+
+bool ProcessPacket(Packet & packet)
+{
+	switch (packet.GetPacketType())
+	{
+	case PacketType::PT_ChatMessage:
+	{
+		std::string chatmessage;
+		packet >> chatmessage;
+		std::cout << "Chat Message: " << chatmessage << std::endl;
+		break;
+	}
+	case PacketType::PT_IntegerArray:
+	{
+		uint32_t arraySize = 0;
+		packet >> arraySize;
+		std::cout << "Array Size: " << arraySize << std::endl;
+		for (uint32_t i = 0; i < arraySize; i++)
+		{
+			uint32_t element = 0;
+			packet >> element;
+			std::cout << "Element[" << i << "] - " << element << std::endl;
+		}
+		break;
+	}
+	default:
+		return false;
+	}
+
+	return true;
+}
 
 int main()
 {
@@ -24,7 +55,6 @@ int main()
 				{
 					std::cout << "New connection accepted." << std::endl;
 
-					std::string string1, string2, string3;
 					Packet packet;
 					while (true)
 					{
@@ -32,18 +62,8 @@ int main()
 						if (result != PResult::P_Success)
 							break;
 
-						try
-						{
-							packet >> string1 >> string2 >> string3;
-						}
-						catch (PacketException & exception)
-						{
-							std::cout << exception.what() << std::endl;
+						if (!ProcessPacket(packet))
 							break;
-						}
-						std::cout << string1 << std::endl;
-						std::cout << string2 << std::endl;
-
 					}
 
 					newConnection.Close();

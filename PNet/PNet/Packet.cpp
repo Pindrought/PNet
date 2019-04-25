@@ -3,10 +3,29 @@
 
 namespace PNet
 {
+	Packet::Packet(PacketType packetType)
+	{
+		Clear();
+		AssignPacketType(packetType);
+	}
+
+	PacketType Packet::GetPacketType()
+	{
+		PacketType * packetTypePtr = reinterpret_cast<PacketType*>(&buffer[0]);
+		return static_cast<PacketType>(ntohs(*packetTypePtr));
+	}
+
+	void Packet::AssignPacketType(PacketType packetType)
+	{
+		PacketType * packetTypePtr = reinterpret_cast<PacketType*>(&buffer[0]);
+		*packetTypePtr = static_cast<PacketType>(htons(packetType));
+	}
+
 	void Packet::Clear()
 	{
-		buffer.clear();
-		extractionOffset = 0;
+		buffer.resize(sizeof(PacketType));
+		AssignPacketType(PacketType::PT_Invalid);
+		extractionOffset = sizeof(PacketType);
 	}
 
 	void Packet::Append(const void * data, uint32_t size)
