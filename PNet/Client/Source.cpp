@@ -11,7 +11,7 @@ int main()
 	if (Network::Initialize())
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
-		Socket socket(IPVersion::IPv6);
+		Socket socket(IPVersion::IPv4);
 		if (socket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
