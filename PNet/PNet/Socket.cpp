@@ -114,30 +114,39 @@ namespace PNet
 
 	PResult Socket::Accept(Socket & outSocket)
 	{
-
-		sockaddr_in6 tempaddr = {};
-		int len = sizeof(sockaddr_in6);
-
-		SocketHandle acceptedConnectionHandle = accept(handle, (sockaddr*)(&tempaddr), &len);
-		if (acceptedConnectionHandle == INVALID_SOCKET)
+		switch (ipversion)
 		{
-			int error = WSAGetLastError();
-			return PResult::P_GenericError;
-		}
+		case IPVersion::IPv4:
+		{
+			sockaddr_in addr = {};
+			int len = sizeof(sockaddr_in);
 
-		switch (((sockaddr*)(&tempaddr))->sa_family)
-		{
-		case AF_INET: //IPv4
-		{
-			IPEndpoint newConnectionEndpoint((sockaddr*)&tempaddr);
+			SocketHandle acceptedConnectionHandle = accept(handle, (sockaddr*)(&addr), &len);
+			if (acceptedConnectionHandle == INVALID_SOCKET)
+			{
+				int error = WSAGetLastError();
+				return PResult::P_GenericError;
+			}
+
+			IPEndpoint newConnectionEndpoint((sockaddr*)&addr);
 			std::cout << "New IPv4 connection accepted!" << std::endl;
 			newConnectionEndpoint.Print();
 			outSocket = Socket(IPVersion::IPv4, acceptedConnectionHandle);
 			break;
 		}
-		case AF_INET6: //IPv6
+		case IPVersion::IPv6:
 		{
-			IPEndpoint newConnectionEndpoint((sockaddr*)&tempaddr);
+			sockaddr_in6 addr6 = {};
+			int len = sizeof(sockaddr_in6);
+
+			SocketHandle acceptedConnectionHandle = accept(handle, (sockaddr*)(&addr6), &len);
+			if (acceptedConnectionHandle == INVALID_SOCKET)
+			{
+				int error = WSAGetLastError();
+				return PResult::P_GenericError;
+			}
+
+			IPEndpoint newConnectionEndpoint((sockaddr*)&addr6);
 			std::cout << "New IPv6 connection accepted!" << std::endl;
 			newConnectionEndpoint.Print();
 			outSocket = Socket(IPVersion::IPv6, acceptedConnectionHandle);
@@ -146,7 +155,7 @@ namespace PNet
 		default:
 			return PResult::P_GenericError;
 		}
-
+		
 		return PResult::P_Success;
 	}
 

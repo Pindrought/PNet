@@ -153,7 +153,7 @@ namespace PNet
 		assert(ipversion == IPVersion::IPv6);
 		sockaddr_in6 addr = {};
 		addr.sin6_family = AF_INET6;
-		memcpy(&addr.sin6_addr, &ip_bytes[0], sizeof(ULONG));
+		memcpy(&addr.sin6_addr, &ip_bytes[0], 16);
 		addr.sin6_port = htons(port);
 		return addr;
 	}
