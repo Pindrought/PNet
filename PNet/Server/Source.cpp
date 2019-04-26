@@ -1,4 +1,4 @@
-//Server Code [Tutorial 16]
+//Server Code [Tutorial 17] [Dev branch]
 //Author: Jacob Preston 2019-04-25
 
 #include <PNet\IncludeMe.h>
@@ -43,15 +43,16 @@ int main()
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
 
-		Socket socket; 
-		if (socket.Create() == PResult::P_Success)
+
+		Socket listeningSocket(IPVersion::IPv6); 
+		if (listeningSocket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
-			if (socket.Listen(IPEndpoint("0.0.0.0", 4790)) == PResult::P_Success)
+			if (listeningSocket.Listen(IPEndpoint("::1", 4790)) == PResult::P_Success)
 			{
 				std::cout << "Socket successfully listening on port 4790." << std::endl;
 				Socket newConnection;
-				if (socket.Accept(newConnection) == PResult::P_Success)
+				if (listeningSocket.Accept(newConnection) == PResult::P_Success)
 				{
 					std::cout << "New connection accepted." << std::endl;
 
@@ -77,7 +78,7 @@ int main()
 			{
 				std::cerr << "Failed to listen on port 4790." << std::endl;
 			}
-			socket.Close();
+			listeningSocket.Close();
 		}
 		else
 		{

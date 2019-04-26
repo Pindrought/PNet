@@ -1,4 +1,4 @@
-//Client Code [Tutorial 16]
+//Client Code [Tutorial 17] [Dev branch]
 //Author: Jacob Preston 2019-04-25
 
 #include <PNet\IncludeMe.h>
@@ -48,7 +48,7 @@ int main()
 						break;
 
 					std::cout << "Attempting to send chunk of data..." << std::endl;
-					Sleep(500);
+					Sleep(5000);
 				}
 			}
 			else
