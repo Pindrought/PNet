@@ -12,7 +12,7 @@ namespace PNet
 	class Socket
 	{
 	public:
-		Socket(	IPVersion ipversion = IPVersion::Unknown,
+		Socket(	IPVersion ipversion = IPVersion::IPv4,
 				SocketHandle handle = INVALID_SOCKET);
 		PResult Create();
 		PResult Close();

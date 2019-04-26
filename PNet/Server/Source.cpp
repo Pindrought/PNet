@@ -48,7 +48,7 @@ int main()
 		if (listeningSocket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
-			if (listeningSocket.Listen(IPEndpoint("::1", 4790)) == PResult::P_Success)
+			if (listeningSocket.Listen(IPEndpoint("::", 4790)) == PResult::P_Success)
 			{
 				std::cout << "Socket successfully listening on port 4790." << std::endl;
 				Socket newConnection;
