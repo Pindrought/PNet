@@ -11,11 +11,11 @@ int main()
 	if (Network::Initialize())
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
-		Socket socket;
+		Socket socket(IPVersion::IPv6);
 		if (socket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
-			if (socket.Connect(IPEndpoint("127.0.0.1", 4790)) == PResult::P_Success)
+			if (socket.Connect(IPEndpoint("::1", 4790)) == PResult::P_Success)
 			{
 				std::cout << "Successfully connected to server!" << std::endl;
 				
