@@ -86,7 +86,7 @@ namespace PNet
 
 			ipversion = IPVersion::IPv6;
 
-			freeaddrinfo(hostinfo); //memory cleanup from getaddrinfo call
+			freeaddrinfo(hostinfov6); // [Fixed 2019-04-30] - had wrong variable name
 			return;
 		}
 
