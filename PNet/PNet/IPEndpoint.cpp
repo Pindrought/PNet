@@ -12,9 +12,14 @@ namespace PNet
 		in_addr addr = {}; //location to store the IPv4 address
 		int result = inet_pton(AF_INET, ip, &addr);
 
+	
+		in6_addr test;
+
+
+
 		if (result == 1)
 		{
-			if (addr.S_un.S_addr != INADDR_NONE)
+			if (addr.s_addr != INADDR_NONE)
 			{
 				ip_string = ip;
 				hostname = ip;
@@ -61,7 +66,7 @@ namespace PNet
 			hostname = ip;
 
 			ip_bytes.resize(16);
-			memcpy(&ip_bytes[0], &addr6.u, 16);
+			memcpy(&ip_bytes[0], &addr6, 16);
 
 			ipversion = IPVersion::IPv6;
 			return;
@@ -74,7 +79,7 @@ namespace PNet
 		result = getaddrinfo(ip, NULL, &hints6, &hostinfo6);
 		if (result == 0)
 		{
-			sockaddr_in6 * host_addr6 = reinterpret_cast<sockaddr_in6*>(hostinfo->ai_addr);
+			sockaddr_in6 * host_addr6 = reinterpret_cast<sockaddr_in6*>(hostinfo6->ai_addr);
 
 			ip_string.resize(46); //46 characters for ipv6 string
 			inet_ntop(AF_INET, &host_addr6->sin6_addr, &ip_string[0], 46);
