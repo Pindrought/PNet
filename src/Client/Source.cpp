@@ -1,11 +1,12 @@
-//Client Code [Tutorial 17]
-//Author: Jacob Preston 2019-04-26
+//Client Code [Tutorial 17] [Linux Compatible Port]
+//Author: Jacob Preston 2019-04-30
 
 #include <PNet/IncludeMe.h>
 #include <iostream>
+#ifndef _WIN32
 #include <unistd.h>
-
 #define Sleep(duration) usleep(duration*1000)
+#endif
 
 using namespace PNet;
 
