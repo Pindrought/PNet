@@ -30,7 +30,7 @@ bool Server::Initialize(IPEndpoint ip)
 	return false;
 }
 
-void Server::Frame()
+void Server::Frame() 
 {
 	Socket newConnection;
 	if (listeningSocket.Accept(newConnection) == PResult::P_Success)
