@@ -1,5 +1,5 @@
-//Client Code [Tutorial 2] [Nonblocking]
-//Author: Jacob Preston 2019-05-05
+//Client Code NONBLOCKING DEV
+//Author: Jacob Preston 2019-05-10
 
 #include "Client.h"
 #include <iostream>
