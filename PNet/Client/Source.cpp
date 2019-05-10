@@ -1,5 +1,5 @@
-//Client Code [Tutorial 17]
-//Author: Jacob Preston 2019-04-26
+//Client Code [Tutorial 1] [Nonblocking] [Winsock]
+//Author: Jacob Preston 2019-05-10
 
 #include <PNet\IncludeMe.h>
 #include <iostream>
