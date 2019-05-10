@@ -1,9 +1,10 @@
-//Server Code [Tutorial 1] [Nonblocking]
-//Author: Jacob Preston 2019-05-04
+//Server Code [Tutorial 2] [Nonblocking]
+//Author: Jacob Preston 2019-05-05
 
-#include "Server.h"
+#include <PNet/IncludeMe.h>
 #include <iostream>
 
+using namespace PNet;
 
 //bool ProcessPacket(Packet & packet)
 //{
@@ -39,7 +40,7 @@
 int main()
 {
 	Server server;
-	if (server.Initialize(IPEndpoint("0.0.0.0", 6112)))
+	if (server.Initialize(IPEndpoint("::", 6112)))
 	{
 		while (true)
 		{
