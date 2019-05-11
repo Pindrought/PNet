@@ -1,4 +1,4 @@
-//Client Code [Tutorial 2] [Nonblocking] [Winsock]
+//Client Code [Tutorial 3] [Nonblocking] [Winsock]
 //Author: Jacob Preston 2019-05-11
 
 #include "Client.h"

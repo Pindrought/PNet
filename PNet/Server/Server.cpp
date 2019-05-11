@@ -41,12 +41,13 @@ void Server::Frame()
 	{
 		if (listeningSocketFD.revents & POLLRDNORM)
 		{
-			Socket newConnection;
-			if (listeningSocket.Accept(newConnection) == PResult::P_Success)
+			Socket newConnectionSocket;
+			IPEndpoint newConnectionEndpoint;
+			if (listeningSocket.Accept(newConnectionSocket, &newConnectionEndpoint) == PResult::P_Success)
 			{
-				std::cout << "New connection accepted." << std::endl;
-
-				newConnection.Close();
+				TCPConnection acceptedConnection(newConnectionSocket, newConnectionEndpoint);
+				std::cout << acceptedConnection.ToString() << " - New connection accepted." << std::endl;
+				acceptedConnection.Close();
 			}
 			else
 			{

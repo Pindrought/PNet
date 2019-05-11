@@ -18,7 +18,7 @@ namespace PNet
 		PResult Close();
 		PResult Bind(IPEndpoint endpoint);
 		PResult Listen(IPEndpoint endpoint, int backlog = 5);
-		PResult Accept(Socket & outSocket);
+		PResult Accept(Socket & outSocket, IPEndpoint * endpoint = nullptr);
 		PResult Connect(IPEndpoint endpoint);
 		PResult Send(const void * data, int numberOfBytes, int & bytesSent);
 		PResult Recv(void * destination, int numberOfBytes, int & bytesReceived);

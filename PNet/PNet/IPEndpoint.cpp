@@ -1,6 +1,7 @@
 #include "IPEndpoint.h"
 #include <assert.h>
 #include <iostream>
+#include "Helpers.h"
 
 namespace PNet
 {
