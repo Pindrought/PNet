@@ -45,8 +45,8 @@ bool Client::Frame()
 	stringPacket << std::string("This is my string packet!");
 
 	Packet integersPacket(PacketType::PT_IntegerArray);
-	uint32_t arraySize = 6;
-	uint32_t integerArray[6] = { 2, 5, 7, 1, 2, 9 };
+	uint32_t arraySize = 1;
+	uint32_t integerArray[1] = { 2 };
 	integersPacket << arraySize;
 	for (auto integer : integerArray)
 	{

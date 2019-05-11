@@ -69,7 +69,7 @@ namespace PNet
 				}
 			}
 
-			for (int i = 1; i < use_fd.size(); i++)
+			for (int i = use_fd.size()-1; i >= 1; i--)
 			{
 				const int connectionindex = (i - 1);
 
@@ -80,7 +80,6 @@ namespace PNet
 					use_fd.erase(use_fd.begin() + i); //remove socket from our current in use set
 					connections[connectionindex].Close(); //close connection
 					connections.erase(connections.begin() + connectionindex);
-					i -= 1; //adjust index as to not break for loop
 					continue; //skip to next for loop iteration
 				}
 
@@ -91,7 +90,6 @@ namespace PNet
 					use_fd.erase(use_fd.begin() + i); //remove socket from our current in use set
 					connections[connectionindex].Close(); //close connection
 					connections.erase(connections.begin() + connectionindex);
-					i -= 1; //adjust index as to not break for loop
 					continue; //skip to next for loop iteration
 				}
 
@@ -103,15 +101,24 @@ namespace PNet
 					use_fd.erase(use_fd.begin() + i); //remove socket from our current in use set
 					connections[connectionindex].Close(); //close connection
 					connections.erase(connections.begin() + connectionindex); //erase connection from our vector of connections
-					i -= 1; //adjust index as to not break for loop
 					continue; //skip to next for loop iteration
 				}
 
 				if (use_fd[i].revents & POLLRDNORM) //normal data may be read without blocking
 				{
 					//this is where we will recv data
-					char buffer[PNet::g_MaxPacketSize];
-					int bytesReceived = recv(use_fd[i].fd, buffer, PNet::g_MaxPacketSize, NULL); //attempt to read g_MaxPacketSize bytes
+					TCPConnection & connection = connections[connectionindex];
+					int bytesReceived = 0;
+
+					if (connection.packet_task == PacketTask::ProcessPacketSize)
+					{
+						bytesReceived = recv(use_fd[i].fd, (char*)&connection.packet_size, sizeof(uint16_t)-connection.extraction_offset, 0); //attempt to read g_MaxPacketSize bytes
+					}
+					else
+					{
+						bytesReceived = recv(use_fd[i].fd, connection.buffer, connection.packet_size - connection.extraction_offset, 0); //attempt to read g_MaxPacketSize bytes
+					}
+
 					if (bytesReceived == 0) //If connection was dropped
 					{
 						std::cout << "[Recv==0] Lost connection to: " << connections[connectionindex].ToString() << std::endl;
@@ -119,7 +126,6 @@ namespace PNet
 						use_fd.erase(use_fd.begin() + i); //remove socket from our current in use set
 						connections[connectionindex].Close();
 						connections.erase(connections.begin() + connectionindex);
-						i -= 1; //adjust index as to not break for loop
 						continue; //skip to next for loop iteration
 					}
 					if (bytesReceived < 0) //If an error occurred
@@ -132,12 +138,46 @@ namespace PNet
 							use_fd.erase(use_fd.begin() + i); //remove socket from our current in use set
 							connections[connectionindex].Close();
 							connections.erase(connections.begin() + connectionindex);
-							i -= 1; //adjust index as to not break for loop
 							continue; //skip to next for loop iteration
 						}
 					}
-					if (bytesReceived > 0) //if we did receive some data, let's just print it
+					if (bytesReceived > 0) //if we did receive data
 					{
+						connection.extraction_offset += bytesReceived;
+						if (connection.packet_task == PacketTask::ProcessPacketSize)
+						{
+							if (connection.extraction_offset == sizeof(uint16_t))
+							{
+								connection.packet_size = ntohs(connection.packet_size);
+								if (connection.packet_size > PNet::g_MaxPacketSize)
+								{
+									std::cout << "Connection closed due to invalid packet size: " << connection.packet_size << std::endl;
+									connection.Close();
+									continue;
+								}
+								connection.extraction_offset = 0;
+								connection.packet_task = PacketTask::ProcessPacket;
+							}
+						}
+						else //Process packet type
+						{
+							if (connection.extraction_offset == connection.packet_size)
+							{
+								Packet receivedPacket;
+								receivedPacket.buffer.resize(connection.packet_size);
+								memcpy(&receivedPacket.buffer[0], connection.buffer, connection.packet_size);
+								
+								if (!ProcessPacket(receivedPacket))
+								{
+									connection.Close();
+									continue;
+								}
+
+								connection.extraction_offset = 0;
+								connection.packet_size = 0;
+								connection.packet_task = PacketTask::ProcessPacketSize;
+							}
+						}
 						std::cout << connections[connectionindex].ToString() << " - Message size: " << bytesReceived << std::endl;
 					}
 				}
@@ -148,5 +188,36 @@ namespace PNet
 				}
 			}
 		}
+	}
+	bool Server::ProcessPacket(Packet & packet)
+	{
+		switch (packet.GetPacketType())
+		{
+		case PacketType::PT_ChatMessage:
+		{
+			std::string chatmessage;
+			packet >> chatmessage;
+			std::cout << "Chat Message: " << chatmessage << std::endl;
+			break;
+		}
+		case PacketType::PT_IntegerArray:
+		{
+			uint32_t arraySize = 0;
+			packet >> arraySize;
+			std::cout << "Array Size: " << arraySize << std::endl;
+			for (uint32_t i = 0; i < arraySize; i++)
+			{
+				uint32_t element = 0;
+				packet >> element;
+				std::cout << "Element[" << i << "] - " << element << std::endl;
+			}
+			break;
+		}
+		default:
+			std::cout << "Unknown packet type: " << packet.GetPacketType() << std::endl;
+			return false;
+		}
+
+		return true;
 	}
 }
