@@ -9,7 +9,10 @@ class Server
 		bool Initialize(IPEndpoint ip);
 		void Frame();
 	private:
+		void CloseConnection(int connectionIndex, std::string reason);
+		bool ProcessPacket(Packet & packet);
 		Socket listeningSocket;
 		std::vector<TCPConnection> connections;
 		std::vector<WSAPOLLFD> master_fd;
+		std::vector<WSAPOLLFD> use_fd;
 };
