@@ -27,6 +27,11 @@ namespace PNet
 			return PResult::P_GenericError;
 		}
 
+		if (SetBlocking(false) != PResult::P_Success)
+		{
+			return PResult::P_GenericError;
+		}
+
 		if (SetSocketOption(SocketOption::TCP_NoDelay, TRUE) != PResult::P_Success)
 		{
 			return PResult::P_GenericError;
@@ -286,6 +291,20 @@ namespace PNet
 	{
 		return ipversion;
 	}
+
+	PResult Socket::SetBlocking(bool isBlocking)
+	{
+		unsigned long nonBlocking = 1;
+		unsigned long blocking = 0;
+		int result = ioctlsocket(handle, FIONBIO, isBlocking ? &blocking : &nonBlocking);
+		if (result == SOCKET_ERROR)
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+		return PResult::P_Success;
+	}
+
 	PResult Socket::SetSocketOption(SocketOption option, BOOL value)
 	{
 		int result = 0;
