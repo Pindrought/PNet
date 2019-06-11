@@ -110,13 +110,13 @@ namespace PNet
 					TCPConnection & connection = connections[connectionindex];
 					int bytesReceived = 0;
 
-					if (connection.packet_task == PacketTask::ProcessPacketSize)
+					if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
 					{
-						bytesReceived = recv(use_fd[i].fd, (char*)&connection.packet_size, sizeof(uint16_t)-connection.extraction_offset, 0); //attempt to read g_MaxPacketSize bytes
+						bytesReceived = recv(use_fd[i].fd, (char*)&connection.pm_incoming.currentPacketSize, sizeof(uint16_t)-connection.pm_incoming.currentPacketExtractionOffset, 0); //attempt to read g_MaxPacketSize bytes
 					}
 					else
 					{
-						bytesReceived = recv(use_fd[i].fd, connection.buffer, connection.packet_size - connection.extraction_offset, 0); //attempt to read g_MaxPacketSize bytes
+						bytesReceived = recv(use_fd[i].fd, connection.buffer, connection.pm_incoming.currentPacketSize - connection.pm_incoming.currentPacketExtractionOffset, 0); //attempt to read g_MaxPacketSize bytes
 					}
 
 					if (bytesReceived == 0) //If connection was dropped
@@ -143,39 +143,35 @@ namespace PNet
 					}
 					if (bytesReceived > 0) //if we did receive data
 					{
-						connection.extraction_offset += bytesReceived;
-						if (connection.packet_task == PacketTask::ProcessPacketSize)
+						connection.pm_incoming.currentPacketExtractionOffset += bytesReceived;
+						if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
 						{
-							if (connection.extraction_offset == sizeof(uint16_t))
+							if (connection.pm_incoming.currentPacketExtractionOffset == sizeof(uint16_t))
 							{
-								connection.packet_size = ntohs(connection.packet_size);
-								if (connection.packet_size > PNet::g_MaxPacketSize)
+								connection.pm_incoming.currentPacketSize = ntohs(connection.pm_incoming.currentPacketSize);
+								if (connection.pm_incoming.currentPacketSize > PNet::g_MaxPacketSize)
 								{
-									std::cout << "Connection closed due to invalid packet size: " << connection.packet_size << std::endl;
+									std::cout << "Connection closed due to invalid packet size: " << connection.pm_incoming.currentPacketSize << std::endl;
 									connection.Close();
 									continue;
 								}
-								connection.extraction_offset = 0;
-								connection.packet_task = PacketTask::ProcessPacket;
+								connection.pm_incoming.currentPacketExtractionOffset = 0;
+								connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketContents;
 							}
 						}
 						else //Process packet type
 						{
-							if (connection.extraction_offset == connection.packet_size)
+							if (connection.pm_incoming.currentPacketExtractionOffset == connection.pm_incoming.currentPacketSize)
 							{
-								Packet receivedPacket;
-								receivedPacket.buffer.resize(connection.packet_size);
-								memcpy(&receivedPacket.buffer[0], connection.buffer, connection.packet_size);
+								std::shared_ptr<Packet> receivedPacket = std::make_shared<Packet>();
+								receivedPacket->buffer.resize(connection.pm_incoming.currentPacketSize);
+								memcpy(&receivedPacket->buffer[0], connection.buffer, connection.pm_incoming.currentPacketSize);
 								
-								if (!ProcessPacket(receivedPacket))
-								{
-									connection.Close();
-									continue;
-								}
+								connection.pm_incoming.Append(receivedPacket);
 
-								connection.extraction_offset = 0;
-								connection.packet_size = 0;
-								connection.packet_task = PacketTask::ProcessPacketSize;
+								connection.pm_incoming.currentPacketExtractionOffset = 0;
+								connection.pm_incoming.currentPacketSize = 0;
+								connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketSize;
 							}
 						}
 						std::cout << connections[connectionindex].ToString() << " - Message size: " << bytesReceived << std::endl;
@@ -188,33 +184,48 @@ namespace PNet
 				}
 			}
 		}
+
+		for (int i = connections.size() - 1; i >= 0; i--)
+		{
+			while (connections[i].pm_incoming.HasPendingPackets())
+			{
+				std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
+				if (!ProcessPacket(frontPacket))
+				{
+					connections[i].Close();
+					continue;
+				}
+				connections[i].pm_incoming.Pop();
+			}
+		}
+
 	}
-	bool Server::ProcessPacket(Packet & packet)
+	bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
 	{
-		switch (packet.GetPacketType())
+		switch (packet->GetPacketType())
 		{
 		case PacketType::PT_ChatMessage:
 		{
 			std::string chatmessage;
-			packet >> chatmessage;
+			*packet >> chatmessage;
 			std::cout << "Chat Message: " << chatmessage << std::endl;
 			break;
 		}
 		case PacketType::PT_IntegerArray:
 		{
 			uint32_t arraySize = 0;
-			packet >> arraySize;
+			*packet >> arraySize;
 			std::cout << "Array Size: " << arraySize << std::endl;
 			for (uint32_t i = 0; i < arraySize; i++)
 			{
 				uint32_t element = 0;
-				packet >> element;
+				*packet >> element;
 				std::cout << "Element[" << i << "] - " << element << std::endl;
 			}
 			break;
 		}
 		default:
-			std::cout << "Unknown packet type: " << packet.GetPacketType() << std::endl;
+			std::cout << "Unknown packet type: " << packet->GetPacketType() << std::endl;
 			return false;
 		}
 

@@ -9,7 +9,7 @@ namespace PNet
 	public:
 		bool Initialize(IPEndpoint ip);
 		void Frame();
-		bool ProcessPacket(Packet & packet);
+		bool ProcessPacket(std::shared_ptr<Packet> packet);
 	private:
 		Socket listeningSocket;
 		std::vector<WSAPOLLFD> masterfd;
