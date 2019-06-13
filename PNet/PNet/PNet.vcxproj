@@ -127,6 +127,7 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketException.h" />
+    <ClInclude Include="PacketManager.h" />
     <ClInclude Include="PacketType.h" />
     <ClInclude Include="PResult.h" />
     <ClInclude Include="Socket.h" />
@@ -138,6 +139,7 @@
     <ClCompile Include="IPEndpoint.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="PacketManager.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TCPConnection.cpp" />
   </ItemGroup>

@@ -10,7 +10,7 @@ class Server
 		void Frame();
 	private:
 		void CloseConnection(int connectionIndex, std::string reason);
-		bool ProcessPacket(Packet & packet);
+		bool ProcessPacket(std::shared_ptr<Packet> packet);
 		Socket listeningSocket;
 		std::vector<TCPConnection> connections;
 		std::vector<WSAPOLLFD> master_fd;

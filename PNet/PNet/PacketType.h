@@ -7,6 +7,7 @@ namespace PNet
 	{
 		PT_Invalid,
 		PT_ChatMessage,
-		PT_IntegerArray
+		PT_IntegerArray,
+		PT_Test
 	};
 }
