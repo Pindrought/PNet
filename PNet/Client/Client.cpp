@@ -42,7 +42,7 @@ bool Client::IsConnected()
 
 bool Client::Frame()
 {
-	Packet stringPacket(PacketType::PT_ChatMessage);
+	Packet stringPacket(PacketType::PT_Test);
 	stringPacket << std::string("This is my string packet!");
 
 	Packet integersPacket(PacketType::PT_IntegerArray);
