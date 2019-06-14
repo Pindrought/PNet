@@ -3,6 +3,7 @@
 
 bool Server::Initialize(IPEndpoint ip)
 {
+	timer.Restart();
 	master_fd.clear();
 	connections.clear();
 
@@ -59,7 +60,7 @@ void Server::Frame()
 				std::cout << acceptedConnection.ToString() << " - New connection accepted." << std::endl;
 				WSAPOLLFD newConnectionFD = {};
 				newConnectionFD.fd = newConnectionSocket.GetHandle();
-				newConnectionFD.events = POLLRDNORM;
+				newConnectionFD.events = POLLRDNORM | POLLWRNORM;
 				newConnectionFD.revents = 0;
 				master_fd.push_back(newConnectionFD);
 			}
@@ -158,6 +159,49 @@ void Server::Frame()
 					}
 				}
 			}
+
+			if (use_fd[i].events & POLLWRNORM) //If normal data can be written without blocking
+			{
+				PacketManager & pm = connection.pm_outgoing;
+				while (pm.HasPendingPackets())
+				{
+					if (pm.currentTask == PacketManagerTask::ProcessPacketSize)
+					{
+						pm.currentPacketSize = pm.Retrieve()->buffer.size();
+						uint16_t bigEndianSize = htons(pm.currentPacketSize);
+						int bytesSent = send(use_fd[i].fd, (char*)(&bigEndianSize) + pm.currentPacketExtractionOffset, sizeof(uint16_t) - pm.currentPacketExtractionOffset, 0);
+						if (bytesSent > 0)
+						{
+							pm.currentPacketExtractionOffset += bytesSent;
+						}
+						if (pm.currentPacketExtractionOffset == sizeof(uint16_t)) //If full packet size was sent
+						{
+							pm.currentPacketExtractionOffset = 0;
+							pm.currentTask = PacketManagerTask::ProcessPacketContents;
+						}
+						else //If full packet size was not sent, break out of the loop for sending outgoing packets for this connection - we'll have to try again next time we are able to write normal data without blocking
+						{
+							break;
+						}
+					}
+					else //If processing packet contents
+					{
+						char * bufferPtr = &pm.Retrieve()->buffer[0];
+						int bytesSent = send(use_fd[i].fd, bufferPtr + pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
+						if (bytesSent > 0)
+						{
+							pm.currentPacketExtractionOffset += bytesSent;
+						}
+						if (pm.currentPacketExtractionOffset == pm.currentPacketSize)
+						{
+							pm.currentPacketExtractionOffset = 0;
+							pm.currentTask = PacketManagerTask::ProcessPacketSize;
+							pm.Pop(); //Remove packet from queue after finished processing
+						}
+					}
+				}
+			}
+
 		}
 	}
 
@@ -173,6 +217,19 @@ void Server::Frame()
 			}
 			connections[i].pm_incoming.Pop();
 		}
+	}
+
+	if (timer.GetMilisecondsElapsed() > 2000.0) //every 2 seconds append outgoing chat message
+	{
+		std::cout << "Sending out chat message to all connections." << std::endl;
+		std::shared_ptr<Packet> stringPacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
+		*stringPacket << std::string("This is my string packet!");
+
+		for (auto & connection : connections)
+		{
+			connection.pm_outgoing.Append(stringPacket);
+		}
+		timer.Restart();
 	}
 
 }

@@ -134,6 +134,7 @@
     <ClInclude Include="SocketHandle.h" />
     <ClInclude Include="SocketOption.h" />
     <ClInclude Include="TCPConnection.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IPEndpoint.cpp" />
@@ -142,6 +143,7 @@
     <ClCompile Include="PacketManager.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TCPConnection.cpp" />
+    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

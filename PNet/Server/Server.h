@@ -15,4 +15,5 @@ class Server
 		std::vector<TCPConnection> connections;
 		std::vector<WSAPOLLFD> master_fd;
 		std::vector<WSAPOLLFD> use_fd;
+		Timer timer;
 };
