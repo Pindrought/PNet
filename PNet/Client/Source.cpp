@@ -1,5 +1,5 @@
-//Client Code [Tutorial 7 dev] [Nonblocking] [Winsock]
-//Author: Jacob Preston 2019-06-14
+//Client Code [Tutorial 8 dev] [Nonblocking] [Winsock]
+//Author: Jacob Preston 2019-06-23
 
 #include "Client.h"
 #include <iostream>

@@ -1,45 +1,14 @@
-//Server Code [Tutorial 7 dev] [Nonblocking] [Winsock]
-//Author: Jacob Preston 2019-06-14
+//Server Code [Tutorial 8 dev] [Nonblocking] [Winsock]
+//Author: Jacob Preston 2019-06-23
 
-#include "Server.h"
+#include "MyServer.h"
 #include <iostream>
 
 using namespace PNet;
 
-bool ProcessPacket(Packet & packet)
-{
-	switch (packet.GetPacketType())
-	{
-	case PacketType::PT_ChatMessage:
-	{
-		std::string chatmessage;
-		packet >> chatmessage;
-		std::cout << "Chat Message: " << chatmessage << std::endl;
-		break;
-	}
-	case PacketType::PT_IntegerArray:
-	{
-		uint32_t arraySize = 0;
-		packet >> arraySize;
-		std::cout << "Array Size: " << arraySize << std::endl;
-		for (uint32_t i = 0; i < arraySize; i++)
-		{
-			uint32_t element = 0;
-			packet >> element;
-			std::cout << "Element[" << i << "] - " << element << std::endl;
-		}
-		break;
-	}
-	default:
-		return false;
-	}
-
-	return true;
-}
-
 int main()
 {
-	Server server;
+	MyServer server;
 	if (server.Initialize(IPEndpoint("::", 6112)))
 	{
 		while (true)
