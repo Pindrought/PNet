@@ -14,8 +14,9 @@ protected:
 	void CloseConnection(int connectionIndex, std::string reason);
 	virtual bool ProcessPacket(std::shared_ptr<Packet> packet);
 
-	Socket listeningSocket;
 	std::vector<TCPConnection> connections;
+private:
+	Socket listeningSocket;
 	std::vector<WSAPOLLFD> master_fd;
 	std::vector<WSAPOLLFD> use_fd;
 };

@@ -1,14 +1,13 @@
 //Client Code [Tutorial 8] [Nonblocking] [Winsock]
 //Author: Jacob Preston 2019-06-24
 
-#include "Client.h"
+#include "MyClient.h"
 #include <iostream>
 
-using namespace PNet;
 
 int main()
 {
-	Client client;
+	MyClient client;
 	if (client.Connect(IPEndpoint("::1", 6112)))
 	{
 		while (client.IsConnected())

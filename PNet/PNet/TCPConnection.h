@@ -8,6 +8,8 @@ namespace PNet
 	{
 	public:
 		TCPConnection(Socket socket, IPEndpoint endpoint);
+		TCPConnection() :socket(Socket()) {};
+
 		void Close();
 		std::string ToString();
 		Socket socket;
