@@ -1,5 +1,6 @@
 #include "Server.h"
 #include <iostream>
+#include "Network.h"
 
 bool Server::Initialize(IPEndpoint ip)
 {
@@ -56,16 +57,12 @@ void Server::Frame()
 			{
 				connections.emplace_back(TCPConnection(newConnectionSocket, newConnectionEndpoint));
 				TCPConnection & acceptedConnection = connections[connections.size() - 1];
-				std::cout << acceptedConnection.ToString() << " - New connection accepted." << std::endl;
+				OnConnect(acceptedConnection);
 				WSAPOLLFD newConnectionFD = {};
 				newConnectionFD.fd = newConnectionSocket.GetHandle();
 				newConnectionFD.events = POLLRDNORM | POLLWRNORM;
 				newConnectionFD.revents = 0;
 				master_fd.push_back(newConnectionFD);
-
-				std::shared_ptr<Packet> welcomeMessagePacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
-				*welcomeMessagePacket << std::string("Welcome!");
-				acceptedConnection.pm_outgoing.Append(welcomeMessagePacket);
 			}
 			else
 			{
@@ -74,7 +71,7 @@ void Server::Frame()
 		}
 #pragma endregion Code specific to the listening socket
 
-		for (int i = use_fd.size()-1; i >= 1; i--)
+		for (int i = use_fd.size() - 1; i >= 1; i--)
 		{
 			int connectionIndex = i - 1;
 			TCPConnection & connection = connections[connectionIndex];
@@ -99,8 +96,6 @@ void Server::Frame()
 
 			if (use_fd[i].revents & POLLRDNORM) //If normal data can be read without blocking
 			{
-
-				
 				int bytesReceived = 0;
 
 				if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
@@ -163,7 +158,7 @@ void Server::Frame()
 					}
 				}
 			}
-		
+
 			if (use_fd[i].revents & POLLWRNORM) //If normal data can be written without blocking
 			{
 				PacketManager & pm = connection.pm_outgoing;
@@ -192,7 +187,7 @@ void Server::Frame()
 					else //Sending packet contents
 					{
 						char * bufferPtr = &pm.Retrieve()->buffer[0];
-						int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr) + pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
+						int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
 						if (bytesSent > 0)
 						{
 							pm.currentPacketExtractionOffset += bytesSent;
@@ -207,7 +202,7 @@ void Server::Frame()
 					}
 				}
 			}
-		
+
 		}
 	}
 
@@ -227,11 +222,21 @@ void Server::Frame()
 
 }
 
+void Server::OnConnect(TCPConnection & newConnection)
+{
+	std::cout << newConnection.ToString() << " - New connection accepted." << std::endl;
+}
+
+void Server::OnDisconnect(TCPConnection & lostConnection, std::string reason)
+{
+	std::cout << "[" << reason << "] Connection lost: " << lostConnection.ToString() << "." << std::endl;
+}
+
 void Server::CloseConnection(int connectionIndex, std::string reason)
 {
 	TCPConnection & connection = connections[connectionIndex];
-	std::cout << "[" << reason << "] Connection lost: " << connection.ToString() << "." << std::endl;
-	master_fd.erase(master_fd.begin() + (connectionIndex+1));
+	OnDisconnect(connection, reason);
+	master_fd.erase(master_fd.begin() + (connectionIndex + 1));
 	use_fd.erase(use_fd.begin() + (connectionIndex + 1));
 	connection.Close();
 	connections.erase(connections.begin() + connectionIndex);
@@ -239,32 +244,6 @@ void Server::CloseConnection(int connectionIndex, std::string reason)
 
 bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
 {
-	switch (packet->GetPacketType())
-	{
-	case PacketType::PT_ChatMessage:
-	{
-		std::string chatmessage;
-		*packet >> chatmessage;
-		std::cout << "Chat Message: " << chatmessage << std::endl;
-		break;
-	}
-	case PacketType::PT_IntegerArray:
-	{
-		uint32_t arraySize = 0;
-		*packet >> arraySize;
-		std::cout << "Array Size: " << arraySize << std::endl;
-		for (uint32_t i = 0; i < arraySize; i++)
-		{
-			uint32_t element = 0;
-			*packet >> element;
-			std::cout << "Element[" << i << "] - " << element << std::endl;
-		}
-		break;
-	}
-	default:
-		std::cout << "Unrecognized packet type: " << packet->GetPacketType() << std::endl;
-		return false;
-	}
-
+	std::cout << "Packet received with size: " << packet->buffer.size() << std::endl;
 	return true;
 }
