@@ -199,6 +199,10 @@ void Server::Frame()
 							pm.currentTask = PacketManagerTask::ProcessPacketSize;
 							pm.Pop(); //Remove packet from queue after finished processing
 						}
+						else
+						{
+							break; //Added after tutorial was made 2019-06-24
+						}
 					}
 				}
 			}
