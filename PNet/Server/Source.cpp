@@ -1,4 +1,4 @@
-//Server Code [Tutorial 6] [Nonblocking] [Winsock]
+//Server Code [Tutorial 7] [Nonblocking] [Winsock]
 //Author: Jacob Preston 2019-06-13
 
 #include "Server.h"
