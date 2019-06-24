@@ -10,8 +10,8 @@ public:
 	void Frame();
 
 protected:
-	virtual void OnConnect(TCPConnection & connection);
-	virtual void OnDisconnect(TCPConnection & connection, std::string reason);
+	virtual void OnConnect(TCPConnection & newConnection);
+	virtual void OnDisconnect(TCPConnection & lostConnection, std::string reason);
 	void CloseConnection(int connectionIndex, std::string reason);
 	virtual bool ProcessPacket(std::shared_ptr<Packet> packet);
 	Socket listeningSocket;

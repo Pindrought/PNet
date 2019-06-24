@@ -221,14 +221,14 @@ void Server::Frame()
 
 }
 
-void Server::OnConnect(TCPConnection & connection)
+void Server::OnConnect(TCPConnection & newConnection)
 {
-	std::cout << connection.ToString() << " - New connection accepted." << std::endl;
+	std::cout << newConnection.ToString() << " - New connection accepted." << std::endl;
 }
 
-void Server::OnDisconnect(TCPConnection & connection, std::string reason)
+void Server::OnDisconnect(TCPConnection & lostConnection, std::string reason)
 {
-	std::cout << "[" << reason << "] Connection lost: " << connection.ToString() << "." << std::endl;
+	std::cout << "[" << reason << "] Connection lost: " << lostConnection.ToString() << "." << std::endl;
 }
 
 void Server::CloseConnection(int connectionIndex, std::string reason)

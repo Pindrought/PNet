@@ -1,21 +1,40 @@
 #include "MyServer.h"
 #include <iostream>
 
-void MyServer::OnConnect(TCPConnection & connection)
+void MyServer::OnConnect(TCPConnection & newConnection)
 {
-	std::cout << connection.ToString() << " - New connection accepted." << std::endl;
+	std::cout << newConnection.ToString() << " - New connection accepted." << std::endl;
 
-	std::shared_ptr<Packet> stringPacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
-	*stringPacket << std::string("Welcome!");
+	std::shared_ptr<Packet> welcomeMessagePacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
+	*welcomeMessagePacket << std::string("Welcome!");
 
 	std::cout << "Appending welcome message to new connection." << std::endl;
-	connection.pm_outgoing.Append(stringPacket);
+	newConnection.pm_outgoing.Append(welcomeMessagePacket);
 
+	std::shared_ptr<Packet> newUserMessagePacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
+	*newUserMessagePacket << std::string("New user connected!");
+	for (auto & connection : connections)
+	{
+		if (&connection == &newConnection)
+			continue;
+
+		connection.pm_outgoing.Append(newUserMessagePacket);
+	}
 }
 
-void MyServer::OnDisconnect(TCPConnection & connection, std::string reason)
+void MyServer::OnDisconnect(TCPConnection & lostConnection, std::string reason)
 {
-	std::cout << "[" << reason << "] Connection lost: " << connection.ToString() << "." << std::endl;
+	std::cout << "[" << reason << "] Connection lost: " << lostConnection.ToString() << "." << std::endl;
+
+	std::shared_ptr<Packet> newUserMessagePacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
+	*newUserMessagePacket << std::string("User disconnected!");
+	for (auto & connection : connections)
+	{
+		if (&connection == &lostConnection)
+			continue;
+
+		connection.pm_outgoing.Append(newUserMessagePacket);
+	}
 }
 
 bool MyServer::ProcessPacket(std::shared_ptr<Packet> packet)
