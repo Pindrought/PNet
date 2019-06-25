@@ -2,14 +2,12 @@
 #include <iostream>
 #include "Network.h"
 
-bool Server::Initialize(IPEndpoint ip)
+namespace PNet
 {
-	master_fd.clear();
-	connections.clear();
-
-	if (Network::Initialize())
+	bool Server::Initialize(IPEndpoint ip)
 	{
-		std::cout << "Winsock api successfully initialized." << std::endl;
+		master_fd.clear();
+		connections.clear();
 
 		listeningSocket = Socket(ip.GetIPVersion());
 		if (listeningSocket.Create() == PResult::P_Success)
@@ -37,217 +35,217 @@ bool Server::Initialize(IPEndpoint ip)
 		{
 			std::cerr << "Socket failed to create." << std::endl;
 		}
+		return false;
 	}
-	return false;
-}
 
-void Server::Frame()
-{
-	use_fd = master_fd;
-
-	if (WSAPoll(use_fd.data(), use_fd.size(), 1) > 0)
+	void Server::Frame()
 	{
-#pragma region listener
-		WSAPOLLFD & listeningSocketFD = use_fd[0];
-		if (listeningSocketFD.revents & POLLRDNORM)
+		use_fd = master_fd;
+
+		if (WSAPoll(use_fd.data(), use_fd.size(), 1) > 0)
 		{
-			Socket newConnectionSocket;
-			IPEndpoint newConnectionEndpoint;
-			if (listeningSocket.Accept(newConnectionSocket, &newConnectionEndpoint) == PResult::P_Success)
+#pragma region listener
+			WSAPOLLFD & listeningSocketFD = use_fd[0];
+			if (listeningSocketFD.revents & POLLRDNORM)
 			{
-				connections.emplace_back(TCPConnection(newConnectionSocket, newConnectionEndpoint));
-				TCPConnection & acceptedConnection = connections[connections.size() - 1];
-				OnConnect(acceptedConnection);
-				WSAPOLLFD newConnectionFD = {};
-				newConnectionFD.fd = newConnectionSocket.GetHandle();
-				newConnectionFD.events = POLLRDNORM | POLLWRNORM;
-				newConnectionFD.revents = 0;
-				master_fd.push_back(newConnectionFD);
+				Socket newConnectionSocket;
+				IPEndpoint newConnectionEndpoint;
+				if (listeningSocket.Accept(newConnectionSocket, &newConnectionEndpoint) == PResult::P_Success)
+				{
+					connections.emplace_back(TCPConnection(newConnectionSocket, newConnectionEndpoint));
+					TCPConnection & acceptedConnection = connections[connections.size() - 1];
+					OnConnect(acceptedConnection);
+					WSAPOLLFD newConnectionFD = {};
+					newConnectionFD.fd = newConnectionSocket.GetHandle();
+					newConnectionFD.events = POLLRDNORM | POLLWRNORM;
+					newConnectionFD.revents = 0;
+					master_fd.push_back(newConnectionFD);
+				}
+				else
+				{
+					std::cerr << "Failed to accept new connection." << std::endl;
+				}
 			}
-			else
-			{
-				std::cerr << "Failed to accept new connection." << std::endl;
-			}
-		}
 #pragma endregion Code specific to the listening socket
 
-		for (int i = use_fd.size() - 1; i >= 1; i--)
-		{
-			int connectionIndex = i - 1;
-			TCPConnection & connection = connections[connectionIndex];
-
-			if (use_fd[i].revents & POLLERR) //If error occurred on this socket
+			for (int i = use_fd.size() - 1; i >= 1; i--)
 			{
-				CloseConnection(connectionIndex, "POLLERR");
-				continue;
-			}
+				int connectionIndex = i - 1;
+				TCPConnection & connection = connections[connectionIndex];
 
-			if (use_fd[i].revents & POLLHUP) //If poll hangup occurred on this socket
-			{
-				CloseConnection(connectionIndex, "POLLHUP");
-				continue;
-			}
-
-			if (use_fd[i].revents & POLLNVAL) //If invalid socket
-			{
-				CloseConnection(connectionIndex, "POLLNVAL");
-				continue;
-			}
-
-			if (use_fd[i].revents & POLLRDNORM) //If normal data can be read without blocking
-			{
-				int bytesReceived = 0;
-
-				if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
+				if (use_fd[i].revents & POLLERR) //If error occurred on this socket
 				{
-					bytesReceived = recv(use_fd[i].fd, (char*)&connection.pm_incoming.currentPacketSize + connection.pm_incoming.currentPacketExtractionOffset, sizeof(uint16_t) - connection.pm_incoming.currentPacketExtractionOffset, 0);
-				}
-				else //Process Packet Contents
-				{
-					bytesReceived = recv(use_fd[i].fd, (char*)&connection.buffer + connection.pm_incoming.currentPacketExtractionOffset, connection.pm_incoming.currentPacketSize - connection.pm_incoming.currentPacketExtractionOffset, 0);
-				}
-
-
-				if (bytesReceived == 0) //If connection was lost
-				{
-					CloseConnection(connectionIndex, "Recv==0");
+					CloseConnection(connectionIndex, "POLLERR");
 					continue;
 				}
 
-				if (bytesReceived == SOCKET_ERROR) //If error occurred on socket
+				if (use_fd[i].revents & POLLHUP) //If poll hangup occurred on this socket
 				{
-					int error = WSAGetLastError();
-					if (error != WSAEWOULDBLOCK)
-					{
-						CloseConnection(connectionIndex, "Recv<0");
-						continue;
-					}
+					CloseConnection(connectionIndex, "POLLHUP");
+					continue;
 				}
 
-				if (bytesReceived > 0)
+				if (use_fd[i].revents & POLLNVAL) //If invalid socket
 				{
-					connection.pm_incoming.currentPacketExtractionOffset += bytesReceived;
+					CloseConnection(connectionIndex, "POLLNVAL");
+					continue;
+				}
+
+				if (use_fd[i].revents & POLLRDNORM) //If normal data can be read without blocking
+				{
+					int bytesReceived = 0;
+
 					if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
 					{
-						if (connection.pm_incoming.currentPacketExtractionOffset == sizeof(uint16_t))
+						bytesReceived = recv(use_fd[i].fd, (char*)&connection.pm_incoming.currentPacketSize + connection.pm_incoming.currentPacketExtractionOffset, sizeof(uint16_t) - connection.pm_incoming.currentPacketExtractionOffset, 0);
+					}
+					else //Process Packet Contents
+					{
+						bytesReceived = recv(use_fd[i].fd, (char*)&connection.buffer + connection.pm_incoming.currentPacketExtractionOffset, connection.pm_incoming.currentPacketSize - connection.pm_incoming.currentPacketExtractionOffset, 0);
+					}
+
+
+					if (bytesReceived == 0) //If connection was lost
+					{
+						CloseConnection(connectionIndex, "Recv==0");
+						continue;
+					}
+
+					if (bytesReceived == SOCKET_ERROR) //If error occurred on socket
+					{
+						int error = WSAGetLastError();
+						if (error != WSAEWOULDBLOCK)
 						{
-							connection.pm_incoming.currentPacketSize = ntohs(connection.pm_incoming.currentPacketSize);
-							if (connection.pm_incoming.currentPacketSize > PNet::g_MaxPacketSize)
+							CloseConnection(connectionIndex, "Recv<0");
+							continue;
+						}
+					}
+
+					if (bytesReceived > 0)
+					{
+						connection.pm_incoming.currentPacketExtractionOffset += bytesReceived;
+						if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
+						{
+							if (connection.pm_incoming.currentPacketExtractionOffset == sizeof(uint16_t))
 							{
-								CloseConnection(connectionIndex, "Packet size too large.");
-								continue;
+								connection.pm_incoming.currentPacketSize = ntohs(connection.pm_incoming.currentPacketSize);
+								if (connection.pm_incoming.currentPacketSize > PNet::g_MaxPacketSize)
+								{
+									CloseConnection(connectionIndex, "Packet size too large.");
+									continue;
+								}
+								connection.pm_incoming.currentPacketExtractionOffset = 0;
+								connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketContents;
 							}
-							connection.pm_incoming.currentPacketExtractionOffset = 0;
-							connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketContents;
 						}
-					}
-					else //Processing packet contents
-					{
-						if (connection.pm_incoming.currentPacketExtractionOffset == connection.pm_incoming.currentPacketSize)
+						else //Processing packet contents
 						{
-							std::shared_ptr<Packet> packet = std::make_shared<Packet>();
-							packet->buffer.resize(connection.pm_incoming.currentPacketSize);
-							memcpy(&packet->buffer[0], connection.buffer, connection.pm_incoming.currentPacketSize);
+							if (connection.pm_incoming.currentPacketExtractionOffset == connection.pm_incoming.currentPacketSize)
+							{
+								std::shared_ptr<Packet> packet = std::make_shared<Packet>();
+								packet->buffer.resize(connection.pm_incoming.currentPacketSize);
+								memcpy(&packet->buffer[0], connection.buffer, connection.pm_incoming.currentPacketSize);
 
-							connection.pm_incoming.Append(packet);
+								connection.pm_incoming.Append(packet);
 
-							connection.pm_incoming.currentPacketSize = 0;
-							connection.pm_incoming.currentPacketExtractionOffset = 0;
-							connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketSize;
+								connection.pm_incoming.currentPacketSize = 0;
+								connection.pm_incoming.currentPacketExtractionOffset = 0;
+								connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketSize;
+							}
 						}
 					}
 				}
-			}
 
-			if (use_fd[i].revents & POLLWRNORM) //If normal data can be written without blocking
-			{
-				PacketManager & pm = connection.pm_outgoing;
-				while (pm.HasPendingPackets())
+				if (use_fd[i].revents & POLLWRNORM) //If normal data can be written without blocking
 				{
-					if (pm.currentTask == PacketManagerTask::ProcessPacketSize) //Sending packet size
+					PacketManager & pm = connection.pm_outgoing;
+					while (pm.HasPendingPackets())
 					{
-						pm.currentPacketSize = pm.Retrieve()->buffer.size();
-						uint16_t bigEndianPacketSize = htons(pm.currentPacketSize);
-						int bytesSent = send(use_fd[i].fd, (char*)(&bigEndianPacketSize) + pm.currentPacketExtractionOffset, sizeof(uint16_t) - pm.currentPacketExtractionOffset, 0);
-						if (bytesSent > 0)
+						if (pm.currentTask == PacketManagerTask::ProcessPacketSize) //Sending packet size
 						{
-							pm.currentPacketExtractionOffset += bytesSent;
-						}
+							pm.currentPacketSize = pm.Retrieve()->buffer.size();
+							uint16_t bigEndianPacketSize = htons(pm.currentPacketSize);
+							int bytesSent = send(use_fd[i].fd, (char*)(&bigEndianPacketSize) + pm.currentPacketExtractionOffset, sizeof(uint16_t) - pm.currentPacketExtractionOffset, 0);
+							if (bytesSent > 0)
+							{
+								pm.currentPacketExtractionOffset += bytesSent;
+							}
 
-						if (pm.currentPacketExtractionOffset == sizeof(uint16_t)) //If full packet size was sent
-						{
-							pm.currentPacketExtractionOffset = 0;
-							pm.currentTask = PacketManagerTask::ProcessPacketContents;
+							if (pm.currentPacketExtractionOffset == sizeof(uint16_t)) //If full packet size was sent
+							{
+								pm.currentPacketExtractionOffset = 0;
+								pm.currentTask = PacketManagerTask::ProcessPacketContents;
+							}
+							else //If full packet size was not sent, break out of the loop for sending outgoing packets for this connection - we'll have to try again next time we are able to write normal data without blocking
+							{
+								break;
+							}
 						}
-						else //If full packet size was not sent, break out of the loop for sending outgoing packets for this connection - we'll have to try again next time we are able to write normal data without blocking
+						else //Sending packet contents
 						{
-							break;
-						}
-					}
-					else //Sending packet contents
-					{
-						char * bufferPtr = &pm.Retrieve()->buffer[0];
-						int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
-						if (bytesSent > 0)
-						{
-							pm.currentPacketExtractionOffset += bytesSent;
-						}
+							char * bufferPtr = &pm.Retrieve()->buffer[0];
+							int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
+							if (bytesSent > 0)
+							{
+								pm.currentPacketExtractionOffset += bytesSent;
+							}
 
-						if (pm.currentPacketExtractionOffset == pm.currentPacketSize) //If full packet contents have been sent
-						{
-							pm.currentPacketExtractionOffset = 0;
-							pm.currentTask = PacketManagerTask::ProcessPacketSize;
-							pm.Pop(); //Remove packet from queue after finished processing
-						}
-						else
-						{
-							break; //Added after tutorial was made 2019-06-24
+							if (pm.currentPacketExtractionOffset == pm.currentPacketSize) //If full packet contents have been sent
+							{
+								pm.currentPacketExtractionOffset = 0;
+								pm.currentTask = PacketManagerTask::ProcessPacketSize;
+								pm.Pop(); //Remove packet from queue after finished processing
+							}
+							else
+							{
+								break; //Added after tutorial was made 2019-06-24
+							}
 						}
 					}
 				}
+
 			}
-
 		}
-	}
 
-	for (int i = connections.size() - 1; i >= 0; i--)
-	{
-		while (connections[i].pm_incoming.HasPendingPackets())
+		for (int i = connections.size() - 1; i >= 0; i--)
 		{
-			std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
-			if (!ProcessPacket(frontPacket))
+			while (connections[i].pm_incoming.HasPendingPackets())
 			{
-				CloseConnection(i, "Failed to process incoming packet.");
-				break;
+				std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
+				if (!ProcessPacket(frontPacket))
+				{
+					CloseConnection(i, "Failed to process incoming packet.");
+					break;
+				}
+				connections[i].pm_incoming.Pop();
 			}
-			connections[i].pm_incoming.Pop();
 		}
+
 	}
 
-}
+	void Server::OnConnect(TCPConnection & newConnection)
+	{
+		std::cout << newConnection.ToString() << " - New connection accepted." << std::endl;
+	}
 
-void Server::OnConnect(TCPConnection & newConnection)
-{
-	std::cout << newConnection.ToString() << " - New connection accepted." << std::endl;
-}
+	void Server::OnDisconnect(TCPConnection & lostConnection, std::string reason)
+	{
+		std::cout << "[" << reason << "] Connection lost: " << lostConnection.ToString() << "." << std::endl;
+	}
 
-void Server::OnDisconnect(TCPConnection & lostConnection, std::string reason)
-{
-	std::cout << "[" << reason << "] Connection lost: " << lostConnection.ToString() << "." << std::endl;
-}
+	void Server::CloseConnection(int connectionIndex, std::string reason)
+	{
+		TCPConnection & connection = connections[connectionIndex];
+		OnDisconnect(connection, reason);
+		master_fd.erase(master_fd.begin() + (connectionIndex + 1));
+		use_fd.erase(use_fd.begin() + (connectionIndex + 1));
+		connection.Close();
+		connections.erase(connections.begin() + connectionIndex);
+	}
 
-void Server::CloseConnection(int connectionIndex, std::string reason)
-{
-	TCPConnection & connection = connections[connectionIndex];
-	OnDisconnect(connection, reason);
-	master_fd.erase(master_fd.begin() + (connectionIndex + 1));
-	use_fd.erase(use_fd.begin() + (connectionIndex + 1));
-	connection.Close();
-	connections.erase(connections.begin() + connectionIndex);
-}
-
-bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
-{
-	std::cout << "Packet received with size: " << packet->buffer.size() << std::endl;
-	return true;
+	bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
+	{
+		std::cout << "Packet received with size: " << packet->buffer.size() << std::endl;
+		return true;
+	}
 }

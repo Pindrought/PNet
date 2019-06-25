@@ -1,17 +1,20 @@
-//Server Code [Tutorial 8] [Nonblocking] [Winsock]
-//Author: Jacob Preston 2019-06-24
+//Server Code [Tutorial 9] [Nonblocking] [Winsock]
+//Author: Jacob Preston 2019-06-25
 
 #include "MyServer.h"
 #include <iostream>
 
 int main()
 {
-	MyServer server;
-	if (server.Initialize(IPEndpoint("::", 6112)))
+	if (Network::Initialize())
 	{
-		while (true)
+		MyServer server;
+		if (server.Initialize(IPEndpoint("::", 6112)))
 		{
-			server.Frame();
+			while (true)
+			{
+				server.Frame();
+			}
 		}
 	}
 	Network::Shutdown();
