@@ -11,7 +11,9 @@ namespace PNet
 	{
 	public:
 		Packet(PacketType packetType = PacketType::PT_Invalid);
+		uint16_t GetPacketSize();
 		PacketType GetPacketType();
+		void AssignPacketSize(uint16_t size);
 		void AssignPacketType(PacketType packetType);
 
 		void Clear();

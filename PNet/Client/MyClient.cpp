@@ -40,4 +40,5 @@ void MyClient::OnConnect()
 	std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(PacketType::PT_ChatMessage);
 	*helloPacket << std::string("Hello from the client!");
 	connection.pm_outgoing.Append(helloPacket);
+
 }
