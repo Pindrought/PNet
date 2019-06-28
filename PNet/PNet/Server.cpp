@@ -40,6 +40,14 @@ namespace PNet
 
 	void Server::Frame()
 	{
+		for (int i = 0; i < connections.size(); i++)
+		{
+			if (connections[i].pm_outgoing.HasPendingPackets())
+			{
+				master_fd[i + 1].events = POLLRDNORM | POLLWRNORM;
+			}
+		}
+
 		use_fd = master_fd;
 
 		if (WSAPoll(use_fd.data(), use_fd.size(), 1) > 0)
@@ -54,12 +62,12 @@ namespace PNet
 				{
 					connections.emplace_back(TCPConnection(newConnectionSocket, newConnectionEndpoint));
 					TCPConnection & acceptedConnection = connections[connections.size() - 1];
-					OnConnect(acceptedConnection);
 					WSAPOLLFD newConnectionFD = {};
 					newConnectionFD.fd = newConnectionSocket.GetHandle();
-					newConnectionFD.events = POLLRDNORM | POLLWRNORM;
+					newConnectionFD.events = POLLRDNORM;
 					newConnectionFD.revents = 0;
 					master_fd.push_back(newConnectionFD);
+					OnConnect(acceptedConnection);
 				}
 				else
 				{
@@ -201,6 +209,10 @@ namespace PNet
 								break; //Added after tutorial was made 2019-06-24
 							}
 						}
+					}
+					if (!pm.HasPendingPackets())
+					{
+						master_fd[i].events = POLLRDNORM;
 					}
 				}
 
