@@ -16,6 +16,7 @@ namespace PNet
 		PacketManager pm_incoming;
 		PacketManager pm_outgoing;
 		char buffer[PNet::g_MaxPacketSize];
+		bool simpleTransmissionMode = false; //simple transmission = text only (for dcs)
 	private:
 		IPEndpoint endpoint;
 		std::string stringRepresentation = "";

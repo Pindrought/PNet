@@ -59,6 +59,11 @@ bool MyServer::ProcessPacket(std::shared_ptr<Packet> packet)
 		}
 		break;
 	}
+	case PacketType::PT_Test:
+	{
+		std::cout << "Received test packet." << std::endl;
+		break;
+	}
 	default:
 		std::cout << "Unrecognized packet type: " << packet->GetPacketType() << std::endl;
 		return false;

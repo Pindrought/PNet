@@ -9,7 +9,7 @@ int main()
 	if (Network::Initialize())
 	{
 		MyServer server;
-		if (server.Initialize(IPEndpoint("::", 6112)))
+		if (server.Initialize(IPEndpoint("0.0.0.0", 6112)))
 		{
 			while (true)
 			{
