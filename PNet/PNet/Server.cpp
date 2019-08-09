@@ -166,30 +166,63 @@ namespace PNet
 
 				if (use_fd[i].revents & POLLWRNORM) //If normal data can be written without blocking
 				{
-					PacketManager & pm = connection.pm_outgoing;
-					while (pm.HasPendingPackets())
+					if (connection.textTransmissionMode)
 					{
-						char * bufferPtr = &pm.Retrieve()->buffer[0];
-						pm.currentPacketSize = pm.Retrieve()->buffer.size();
-						int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
-						if (bytesSent > 0)
+						TextPacketManager & tpm = connection.tpm_outgoing;
+						while (tpm.HasPendingPackets())
 						{
-							pm.currentPacketExtractionOffset += bytesSent;
-						}
+							char * bufferPtr = &tpm.Retrieve()->buffer[0];
+							tpm.currentPacketSize = tpm.Retrieve()->buffer.size();
+							int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr)+tpm.currentPacketExtractionOffset, tpm.currentPacketSize - tpm.currentPacketExtractionOffset, 0);
+							if (bytesSent > 0)
+							{
+								tpm.currentPacketExtractionOffset += bytesSent;
+							}
 
-						if (pm.currentPacketExtractionOffset == pm.Retrieve()->buffer.size()) //If full packet size was sent
-						{
-							pm.currentPacketExtractionOffset = 0;
-							pm.Pop();
+							if (tpm.currentPacketExtractionOffset == tpm.Retrieve()->buffer.size()) //If full packet size was sent
+							{
+								tpm.currentPacketExtractionOffset = 0;
+								tpm.currentPacketSize = 0;
+								tpm.Pop();
+							}
+							else //If full packet was not sent, break out of the loop for sending outgoing packets for this connection - we'll have to try again next time we are able to write normal data without blocking
+							{
+								break;
+							}
 						}
-						else //If full packet was not sent, break out of the loop for sending outgoing packets for this connection - we'll have to try again next time we are able to write normal data without blocking
+						if (!tpm.HasPendingPackets())
 						{
-							break;
+							master_fd[i].events = POLLRDNORM;
 						}
 					}
-					if (!pm.HasPendingPackets())
+					else
 					{
-						master_fd[i].events = POLLRDNORM;
+						PacketManager & pm = connection.pm_outgoing;
+						while (pm.HasPendingPackets())
+						{
+							char * bufferPtr = &pm.Retrieve()->buffer[0];
+							pm.currentPacketSize = pm.Retrieve()->buffer.size();
+							int bytesSent = send(use_fd[i].fd, (char*)(bufferPtr)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
+							if (bytesSent > 0)
+							{
+								pm.currentPacketExtractionOffset += bytesSent;
+							}
+
+							if (pm.currentPacketExtractionOffset == pm.Retrieve()->buffer.size()) //If full packet size was sent
+							{
+								pm.currentPacketExtractionOffset = 0;
+								pm.currentPacketSize = 0;
+								pm.Pop();
+							}
+							else //If full packet was not sent, break out of the loop for sending outgoing packets for this connection - we'll have to try again next time we are able to write normal data without blocking
+							{
+								break;
+							}
+						}
+						if (!pm.HasPendingPackets())
+						{
+							master_fd[i].events = POLLRDNORM;
+						}
 					}
 				}
 
@@ -198,15 +231,31 @@ namespace PNet
 
 		for (int i = connections.size() - 1; i >= 0; i--)
 		{
-			while (connections[i].pm_incoming.HasPendingPackets())
+			if (connections[i].textTransmissionMode)
 			{
-				std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
-				if (!ProcessPacket(frontPacket))
+				while (connections[i].tpm_incoming.HasPendingPackets())
 				{
-					CloseConnection(i, "Failed to process incoming packet.");
-					break;
+					std::shared_ptr<TextPacket> frontPacket = connections[i].tpm_incoming.Retrieve();
+					if (!ProcessTextPacket(frontPacket))
+					{
+						CloseConnection(i, "Failed to process incoming packet.");
+						break;
+					}
+					connections[i].tpm_incoming.Pop();
 				}
-				connections[i].pm_incoming.Pop();
+			}
+			else
+			{
+				while (connections[i].pm_incoming.HasPendingPackets())
+				{
+					std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
+					if (!ProcessPacket(frontPacket))
+					{
+						CloseConnection(i, "Failed to process incoming packet.");
+						break;
+					}
+					connections[i].pm_incoming.Pop();
+				}
 			}
 		}
 
@@ -232,9 +281,26 @@ namespace PNet
 		connections.erase(connections.begin() + connectionIndex);
 	}
 
-	bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
+	bool Server::ProcessPacket(std::shared_ptr<Packet> packet, int16_t connectionIndex)
 	{
+		if (packet->GetPacketType() == PacketType::PT_TextTransmissionMode)
+		{
+			connections[connectionIndex].textTransmissionMode = true;
+			TextPacket confirmPacket("Ready");
+
+		}
 		std::cout << "Packet received with size: " << packet->buffer.size() << std::endl;
+		return true;
+	}
+
+	bool ProcessTextPacket(std::shared_ptr<TextPacket> packet, int16_t connectionIndex)
+	{
+		std::vector<std::string> segments = packet->GetSegments();
+		std::cout << "Text packet received with " << segments.size() << " segments." << std::endl;
+		for (int i = 0; i < segments.size(); i++)
+		{
+			std::cout << "[" << i << "] :" << segments[i] << std::endl;
+		}
 		return true;
 	}
 }

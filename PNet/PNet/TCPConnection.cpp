@@ -18,4 +18,20 @@ namespace PNet
 	{
 		return stringRepresentation;
 	}
+	void TCPConnection::SendPacket(std::shared_ptr<Packet> packet)
+	{
+		pm_incoming.Append(packet);
+	}
+	void TCPConnection::SendPacket(std::shared_ptr<TextPacket> packet)
+	{
+		if (packet->flaggedForSend)
+		{
+			tpm_outgoing.Append(packet);
+		}
+		else
+		{
+			packet->buffer += PNET_TEXT_ENDOFPACKET;
+			packet->flaggedForSend = true;
+		}
+	}
 }

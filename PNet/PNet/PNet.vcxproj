@@ -136,6 +136,8 @@
     <ClInclude Include="SocketHandle.h" />
     <ClInclude Include="SocketOption.h" />
     <ClInclude Include="TCPConnection.h" />
+    <ClInclude Include="TextPacket.h" />
+    <ClInclude Include="TextPacketManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
@@ -146,6 +148,8 @@
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TCPConnection.cpp" />
+    <ClCompile Include="TextPacket.cpp" />
+    <ClCompile Include="TextPacketManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

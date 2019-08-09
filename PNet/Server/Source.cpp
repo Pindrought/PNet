@@ -1,12 +1,15 @@
 //Server Code [Flexible] [Nonblocking] [Winsock]
-//Author: Jacob Preston 2019-07-25
 
 #include "MyServer.h"
 #include <iostream>
 
 int main()
 {
-	if (Network::Initialize())
+	std::shared_ptr<TextPacket> test = std::make_shared<TextPacket>("Data");
+	test->Append("Other");
+	test->Append("Okay");
+	
+	/*if (Network::Initialize())
 	{
 		MyServer server;
 		if (server.Initialize(IPEndpoint("0.0.0.0", 6112)))
@@ -17,7 +20,7 @@ int main()
 			}
 		}
 	}
-	Network::Shutdown();
+	Network::Shutdown();*/
 	system("pause");
 	return 0;
 }
