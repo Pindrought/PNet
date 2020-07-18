@@ -16,6 +16,7 @@ namespace PNet
 		PacketManager pm_incoming;
 		PacketManager pm_outgoing;
 		char buffer[PNet::g_MaxPacketSize];
+		bool shutdownMode = false; //If shutdown mode is on, the connection will no longer process incoming packets. Once the outgoing packets are sent, the connection will be closed.
 	private:
 		IPEndpoint endpoint;
 		std::string stringRepresentation = "";

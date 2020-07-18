@@ -203,6 +203,13 @@ namespace PNet
 								pm.currentPacketExtractionOffset = 0;
 								pm.currentTask = PacketManagerTask::ProcessPacketSize;
 								pm.Pop(); //Remove packet from queue after finished processing
+								if (connection.shutdownMode)
+								{
+									if (pm.HasPendingPackets() == false)
+									{
+										connection.Close();
+									}
+								}
 							}
 							else
 							{
@@ -221,15 +228,23 @@ namespace PNet
 
 		for (int i = connections.size() - 1; i >= 0; i--)
 		{
-			while (connections[i].pm_incoming.HasPendingPackets())
+			if (connections[i].shutdownMode == false) //If a connection is in shutdown mode, we will not parse any incoming packets.
 			{
-				std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
-				if (!ProcessPacket(frontPacket))
+				while (connections[i].pm_incoming.HasPendingPackets())
 				{
-					CloseConnection(i, "Failed to process incoming packet.");
-					break;
+					std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
+					PacketProcessingResult result = ProcessPacket(i, frontPacket);
+					if (result == PacketProcessingResult::ProcessFailure)
+					{
+						CloseConnection(i, "Failed to process incoming packet.");
+						break;
+					}
+					else if (result == PacketProcessingResult::ProcessFailureConnectionClosed)
+					{
+						break;
+					}
+					connections[i].pm_incoming.Pop();
 				}
-				connections[i].pm_incoming.Pop();
 			}
 		}
 
@@ -255,9 +270,9 @@ namespace PNet
 		connections.erase(connections.begin() + connectionIndex);
 	}
 
-	bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
+	PacketProcessingResult Server::ProcessPacket(int connectionIndex, std::shared_ptr<Packet> packet)
 	{
 		std::cout << "Packet received with size: " << packet->buffer.size() << std::endl;
-		return true;
+		return PacketProcessingResult::ProcessSuccess;
 	}
 }
