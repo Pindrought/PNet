@@ -11,7 +11,7 @@ void MyServer::OnDisconnect(TCPConnection & lostConnection, std::string reason)
 	std::cout << "[" << reason << "] Connection lost: " << lostConnection.ToString() << "." << std::endl;
 }
 
-PacketProcessingResult MyServer::ProcessPacket(int connectionIndex, std::shared_ptr<Packet> packet)
+bool MyServer::ProcessPacket(int connectionIndex, std::shared_ptr<Packet> packet)
 {
 	switch (packet->GetPacketType())
 	{
@@ -31,14 +31,14 @@ PacketProcessingResult MyServer::ProcessPacket(int connectionIndex, std::shared_
 			connections[connectionIndex].shutdownMode = true; //By setting shutdownmode to true, this connection will close once all outgoing packets are sent. No more incoming packets will be processed for this connection.
 			std::shared_ptr<Packet> badAccountDataPacket = std::make_shared<Packet>(PacketType::PT_BadAccountData);
 			connections[connectionIndex].pm_outgoing.Append(badAccountDataPacket);
-			return PacketProcessingResult::ProcessSuccess;
+			return true;
 		}
 		break;
 	}
 	default:
 		std::cout << "Unrecognized packet type: " << packet->GetPacketType() << std::endl;
-		return PacketProcessingResult::ProcessFailure;
+		return false;
 	}
 
-	return PacketProcessingResult::ProcessSuccess;
+	return true;
 }

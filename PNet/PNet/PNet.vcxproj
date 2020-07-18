@@ -129,7 +129,6 @@
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketException.h" />
     <ClInclude Include="PacketManager.h" />
-    <ClInclude Include="PacketProcessingResult.h" />
     <ClInclude Include="PacketType.h" />
     <ClInclude Include="PResult.h" />
     <ClInclude Include="Server.h" />

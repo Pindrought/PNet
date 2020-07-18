@@ -233,14 +233,9 @@ namespace PNet
 				while (connections[i].pm_incoming.HasPendingPackets())
 				{
 					std::shared_ptr<Packet> frontPacket = connections[i].pm_incoming.Retrieve();
-					PacketProcessingResult result = ProcessPacket(i, frontPacket);
-					if (result == PacketProcessingResult::ProcessFailure)
+					if (!ProcessPacket(i, frontPacket))
 					{
 						CloseConnection(i, "Failed to process incoming packet.");
-						break;
-					}
-					else if (result == PacketProcessingResult::ProcessFailureConnectionClosed)
-					{
 						break;
 					}
 					connections[i].pm_incoming.Pop();
@@ -270,9 +265,9 @@ namespace PNet
 		connections.erase(connections.begin() + connectionIndex);
 	}
 
-	PacketProcessingResult Server::ProcessPacket(int connectionIndex, std::shared_ptr<Packet> packet)
+	bool Server::ProcessPacket(int connectionIndex, std::shared_ptr<Packet> packet)
 	{
 		std::cout << "Packet received with size: " << packet->buffer.size() << std::endl;
-		return PacketProcessingResult::ProcessSuccess;
+		return true;
 	}
 }
