@@ -69,7 +69,7 @@ namespace PNet
 
 		//Attempt to resolve hostname to ipv6 address
 		addrinfo hintsv6 = {}; //hints will filter the results we get back for getaddrinfo
-		hints.ai_family = AF_INET6; //ipv6 addresses only
+		hintsv6.ai_family = AF_INET6; //ipv6 addresses only
 		addrinfo * hostinfov6 = nullptr;
 		result = getaddrinfo(ip, NULL, &hintsv6, &hostinfov6);
 		if (result == 0)
